@@ -1,0 +1,182 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Blood {
+  FIRST_1
+  SECOND_2
+  THIRD_3
+  FOURTH_4
+}
+
+enum Sex {
+  MALE
+  FEMALE
+}
+
+enum LevelActivity {
+  ONE
+  TWO
+  THREE
+  FOUR
+  FIVE
+}
+
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  email    String @unique
+  name        String   
+  password    String   
+  avatarPath String?
+
+  profile Profile?
+}
+
+model Profile {
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique @map("user_id")
+
+  name      String
+  email     String
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  height        String?        @default("")
+  currentWeight Float?
+  desiredWeight Float?
+  birthday      DateTime?
+  avatarPath    String?        @default("")
+  blood         Blood?
+  sex           Sex?
+  levelActivity LevelActivity?
+
+  calculate         Calculate?
+  consumedProduct   ConsumedProduct[]
+  performedExercise PerformedExercise[]
+  DailyActivities   DailyActivities?
+}
+
+model Calculate {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  profile       Profile @relation(fields: [profileId], references: [id])
+  profileId     String  @unique @map("profile_id")
+  dailyCalories Int
+  exerciseTime  Int
+}
+
+model Products {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  weight               Int
+  calories             Int?
+  category             String
+  title                String
+  groupBloodNotAllowed Json
+  Category             Category?         @relation(fields: [categoryId], references: [id])
+  categoryId           String?           @unique @map("category_id")
+  ConsumedProduct      ConsumedProduct[]
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  slug     String
+  name     String
+  products Products[]
+}
+
+model Exercise {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  bodyPart          String
+  equipment         String
+  gifUrl            String
+  name              String
+  target            String
+  burnedCalories    Int
+  time              Int
+  PerformedExercise PerformedExercise[]
+}
+
+model Lookup {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  filter String
+  name   String
+  imgURL String
+}
+
+model ConsumedProduct {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  date     DateTime
+  amount   Int
+  calories Int
+
+  Profile   Profile? @relation(fields: [profileId], references: [id])
+  profileId String   @map("profile_id")
+
+  productId         String           @map("product_id")
+  product           Products         @relation(fields: [productId], references: [id])
+  // DailyActivities   DailyActivities? @relation(fields: [dailyActivitiesId], references: [id])
+  // dailyActivitiesId String?          @map("daily_activities_id")
+}
+
+model PerformedExercise {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  date     DateTime
+  time     Float
+  calories Int
+
+  Profile   Profile? @relation(fields: [profileId], references: [id])
+  profileId String   @map("profile_id")
+
+  exerciseId        String           @map("exercise_id")
+  exercise          Exercise         @relation(fields: [exerciseId], references: [id])
+  // DailyActivities   DailyActivities? @relation(fields: [dailyActivitiesId], references: [id])
+  // dailyActivitiesId String?          @map("daily_activities_id")
+}
+
+model DailyActivities {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  Profile   Profile? @relation(fields: [profileId], references: [id])
+  profileId String   @unique @map("profile_id")
+
+  date          DateTime
+  // todayExercise PerformedExercise[]
+  // todayProduct  ConsumedProduct[]
+}
